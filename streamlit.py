@@ -26,15 +26,10 @@ top_professions = trends_by_profession.sort_values(['Фильтрованные 
 st.title('Наиболее востребованные профессии по фильтрованным регионам')
 
 # Добавление бокового меню с кнопками
-if 'selected_menu' not in st.session_state:
-    st.session_state.selected_menu = "График по профессиям"
-
 menu = st.sidebar.radio("Выберите график", ["График по профессиям", "Влияние опыта работы на зарплату", "3D Scatter Plot"])
 
 # Отображаем выбранный график
 if menu == "График по профессиям":
-    st.session_state.selected_menu = "График по профессиям"
-    # Код для графика по профессиям
     selected_regions = st.multiselect(
         'Выберите регион',
         options=top_professions['Фильтрованные регионы'].unique(),
@@ -54,8 +49,6 @@ if menu == "График по профессиям":
     st.plotly_chart(fig_bar)
 
 elif menu == "Влияние опыта работы на зарплату":
-    st.session_state.selected_menu = "Влияние опыта работы на зарплату"
-    # Код для графика влияния опыта работы на зарплату
     fig_line = go.Figure()
     for education_level in salary_by_education_experience['Образование'].unique():
         subset = salary_by_education_experience[salary_by_education_experience['Образование'] == education_level]
@@ -64,8 +57,8 @@ elif menu == "Влияние опыта работы на зарплату":
             y=subset['Средняя зарплата'],
             mode='lines+markers',
             name=education_level,
-            text=education_level,  # Добавляем текст для каждого уровня образования
-            marker=dict(size=8)  # Увеличиваем размер маркеров
+            text=education_level,
+            marker=dict(size=8)
         ))
     fig_line.update_layout(
         title='Влияние опыта работы на среднюю зарплату в зависимости от образования',
@@ -78,8 +71,6 @@ elif menu == "Влияние опыта работы на зарплату":
     st.plotly_chart(fig_line)
 
 elif menu == "3D Scatter Plot":
-    st.session_state.selected_menu = "3D Scatter Plot"
-    # Код для 3D Scatter Plot
     unique_categories = df['Категория'].unique()
     selected_categories = st.multiselect(
         'Выберите категории',
@@ -87,16 +78,22 @@ elif menu == "3D Scatter Plot":
         default=unique_categories  # Изначально все категории выбраны
     )
     filtered_df = df[df['Категория'].isin(selected_categories)]
+    
+    # Определяем цветовую палитру
+    colors = px.colors.qualitative.Plotly
+    color_map = {category: colors[i % len(colors)] for i, category in enumerate(selected_categories)}
+
+    # Создание 3D графика
     fig_3d = px.scatter_3d(
         filtered_df,
         x='Опыт работы',
-        y='Образование',  # Измените на числовое значение, если есть
+        y='Образование',
         z='Средняя зарплата',
         color='Категория',
         title='3D Scatter Plot',
         hover_name='Категория',
-        size_max=5,  # Максимальный размер шариков
-        color_discrete_sequence=px.colors.qualitative.Plotly  # Палитра цветов
+        size_max=5,
+        color_discrete_sequence=colors  # Используем цветовую палитру для 3D графика
     )
 
     # Установка пределов для осей (уменьшение зума на 50%)
@@ -104,7 +101,7 @@ elif menu == "3D Scatter Plot":
         x_range = (filtered_df['Опыт работы'].min(), filtered_df['Опыт работы'].max())
         fig_3d.update_layout(
             scene=dict(
-                xaxis=dict(range=[x_range[0] * 1.5, x_range[1] * 1.5])  # Уменьшаем диапазон по оси X
+                xaxis=dict(range=[x_range[0] * 1.5, x_range[1] * 1.5])
             )
         )
 
@@ -112,7 +109,7 @@ elif menu == "3D Scatter Plot":
         y_range = (filtered_df['Образование'].min(), filtered_df['Образование'].max())
         fig_3d.update_layout(
             scene=dict(
-                yaxis=dict(range=[y_range[0] * 1.5, y_range[1] * 1.5])  # Уменьшаем диапазон по оси Y
+                yaxis=dict(range=[y_range[0] * 1.5, y_range[1] * 1.5])
             )
         )
 
@@ -120,14 +117,42 @@ elif menu == "3D Scatter Plot":
         z_range = (filtered_df['Средняя зарплата'].min(), filtered_df['Средняя зарплата'].max())
         fig_3d.update_layout(
             scene=dict(
-                zaxis=dict(range=[z_range[0] * 1.5, z_range[1] * 1.5])  # Уменьшаем диапазон по оси Z
+                zaxis=dict(range=[z_range[0] * 1.5, z_range[1] * 1.5])
             )
         )
 
     # Устанавливаем высоту графика
     fig_3d.update_layout(
-        height=800  # Задайте желаемую высоту графика
+        height=800
     )
 
     # Отображение 3D графика в Streamlit
     st.plotly_chart(fig_3d)
+
+    # Построение scatter plot для средней зарплаты по образованию для каждой выбранной категории
+    fig_scatter = go.Figure()
+
+    for category in selected_categories:
+        filtered_salary_data = df[df['Категория'] == category]
+        salary_by_education = filtered_salary_data.groupby('Образование')['Средняя зарплата'].mean().reset_index()
+
+        # Добавление точек для каждой категории с соответствующим цветом
+        fig_scatter.add_trace(go.Scatter(
+            x=salary_by_education['Образование'],
+            y=salary_by_education['Средняя зарплата'],
+            mode='markers',
+            name=category,
+            marker=dict(size=10, color=color_map[category])  # Используем одинаковый цвет
+        ))
+
+    # Настройка графика
+    fig_scatter.update_layout(
+        title='Средняя зарплата по образованию для выбранных категорий',
+        xaxis_title='Уровень образования',
+        yaxis_title='Средняя зарплата',
+        height=600,
+        width=1200
+    )
+
+    # Отображение scatter plot
+    st.plotly_chart(fig_scatter)
