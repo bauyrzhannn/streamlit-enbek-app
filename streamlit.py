@@ -25,22 +25,22 @@ top_professions = trends_by_profession.sort_values(['Фильтрованные 
 # Заголовок приложения
 st.title('Наиболее востребованные профессии по фильтрованным регионам')
 
-# Добавление бокового меню с радио-кнопками
-menu = st.sidebar.radio("Выберите график", ["График по профессиям", "Влияние опыта работы на зарплату"])
+# Добавление бокового меню с кнопками
+if 'selected_menu' not in st.session_state:
+    st.session_state.selected_menu = "График по профессиям"
 
-# Если выбран график по профессиям
+menu = st.sidebar.radio("Выберите график", ["График по профессиям", "Влияние опыта работы на зарплату", "3D Scatter Plot"])
+
+# Отображаем выбранный график
 if menu == "График по профессиям":
-    # Выпадающий список для выбора регионов
+    st.session_state.selected_menu = "График по профессиям"
+    # Код для графика по профессиям
     selected_regions = st.multiselect(
         'Выберите регион',
         options=top_professions['Фильтрованные регионы'].unique(),
         default=top_professions['Фильтрованные регионы'].unique()  # Изначально все регионы выбраны
     )
-
-    # Фильтрация данных в зависимости от выбранных регионов
     filtered_data = top_professions[top_professions['Фильтрованные регионы'].isin(selected_regions)]
-
-    # Построение первого графика (столбчатый)
     fig_bar = px.bar(
         filtered_data,
         x='Название работы',
@@ -51,16 +51,12 @@ if menu == "График по профессиям":
         height=800,
         width=2000
     )
-
-    # Отображение первого графика в Streamlit
     st.plotly_chart(fig_bar)
 
-# Если выбран график влияния опыта работы на зарплату
 elif menu == "Влияние опыта работы на зарплату":
-    # Построение второго графика (линейный)
+    st.session_state.selected_menu = "Влияние опыта работы на зарплату"
+    # Код для графика влияния опыта работы на зарплату
     fig_line = go.Figure()
-
-    # Добавление линий для каждого уровня образования
     for education_level in salary_by_education_experience['Образование'].unique():
         subset = salary_by_education_experience[salary_by_education_experience['Образование'] == education_level]
         fig_line.add_trace(go.Scatter(
@@ -71,8 +67,6 @@ elif menu == "Влияние опыта работы на зарплату":
             text=education_level,  # Добавляем текст для каждого уровня образования
             marker=dict(size=8)  # Увеличиваем размер маркеров
         ))
-
-    # Настройка второго графика
     fig_line.update_layout(
         title='Влияние опыта работы на среднюю зарплату в зависимости от образования',
         xaxis_title='Опыт работы (лет)',
@@ -81,6 +75,59 @@ elif menu == "Влияние опыта работы на зарплату":
         height=800,
         width=1200
     )
-
-    # Отображение второго графика в Streamlit
     st.plotly_chart(fig_line)
+
+elif menu == "3D Scatter Plot":
+    st.session_state.selected_menu = "3D Scatter Plot"
+    # Код для 3D Scatter Plot
+    unique_categories = df['Категория'].unique()
+    selected_categories = st.multiselect(
+        'Выберите категории',
+        options=unique_categories,
+        default=unique_categories  # Изначально все категории выбраны
+    )
+    filtered_df = df[df['Категория'].isin(selected_categories)]
+    fig_3d = px.scatter_3d(
+        filtered_df,
+        x='Опыт работы',
+        y='Образование',  # Измените на числовое значение, если есть
+        z='Средняя зарплата',
+        color='Категория',
+        title='3D Scatter Plot',
+        hover_name='Категория',
+        size_max=5,  # Максимальный размер шариков
+        color_discrete_sequence=px.colors.qualitative.Plotly  # Палитра цветов
+    )
+
+    # Установка пределов для осей (уменьшение зума на 50%)
+    if filtered_df['Опыт работы'].dtype in ['int64', 'float64']:
+        x_range = (filtered_df['Опыт работы'].min(), filtered_df['Опыт работы'].max())
+        fig_3d.update_layout(
+            scene=dict(
+                xaxis=dict(range=[x_range[0] * 1.5, x_range[1] * 1.5])  # Уменьшаем диапазон по оси X
+            )
+        )
+
+    if filtered_df['Образование'].dtype in ['int64', 'float64']:
+        y_range = (filtered_df['Образование'].min(), filtered_df['Образование'].max())
+        fig_3d.update_layout(
+            scene=dict(
+                yaxis=dict(range=[y_range[0] * 1.5, y_range[1] * 1.5])  # Уменьшаем диапазон по оси Y
+            )
+        )
+
+    if filtered_df['Средняя зарплата'].dtype in ['int64', 'float64']:
+        z_range = (filtered_df['Средняя зарплата'].min(), filtered_df['Средняя зарплата'].max())
+        fig_3d.update_layout(
+            scene=dict(
+                zaxis=dict(range=[z_range[0] * 1.5, z_range[1] * 1.5])  # Уменьшаем диапазон по оси Z
+            )
+        )
+
+    # Устанавливаем высоту графика
+    fig_3d.update_layout(
+        height=800  # Задайте желаемую высоту графика
+    )
+
+    # Отображение 3D графика в Streamlit
+    st.plotly_chart(fig_3d)
