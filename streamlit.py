@@ -156,3 +156,31 @@ elif menu == "3D Scatter Plot":
 
     # Отображение scatter plot
     st.plotly_chart(fig_scatter)
+    
+    # Построение scatter plot для средней зарплаты по опыту работы для каждой выбранной категории
+    fig_scatter1 = go.Figure()
+
+    for category in selected_categories:
+        filtered_salary_data = df[df['Категория'] == category]
+        salary_by_experience = filtered_salary_data.groupby('Опыт работы')['Средняя зарплата'].mean().reset_index()
+
+        # Добавление точек для каждой категории с соответствующим цветом
+        fig_scatter1.add_trace(go.Scatter(
+            x=salary_by_experience['Опыт работы'],
+            y=salary_by_experience['Средняя зарплата'],
+            mode='markers',
+            name=category,
+            marker=dict(size=10, color=color_map[category])  # Используем одинаковый цвет
+        ))
+
+    # Настройка scatter plot
+    fig_scatter1.update_layout(
+        title='Средняя зарплата по опыту работы для выбранных категорий',
+        xaxis_title='Опыт работы',
+        yaxis_title='Средняя зарплата',
+        height=600,
+        width=1200
+    )
+
+    # Отображение scatter plot
+    st.plotly_chart(fig_scatter1)
