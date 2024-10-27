@@ -362,7 +362,7 @@ elif menu == 'Kazakhstan Map':
 
     # Add colormap and GeoJSON
     colormap.add_to(m)
-    folium.GeoJson('kz (1).json', style_function=lambda feature: {
+    folium.GeoJson('kz.json', style_function=lambda feature: {
         'fillColor': 'transparent',
         'color': 'blue',
         'weight': 1,
