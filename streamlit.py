@@ -29,13 +29,13 @@ trends_by_profession = df.groupby(['Название работы', 'Фильт�
 top_professions = trends_by_profession.sort_values(['Фильтрованные регионы', 'Количество вакансий'], ascending=[True, False]).groupby('Фильтрованные регионы').head(5)
 
 # Заголовок приложения
-st.title('Наиболее востребованные профессии по фильтрованным регионам')
+st.title('Analyzing data from enbek.kz')
 
 # Добавление бокового меню с кнопками
-menu = st.sidebar.radio("Выберите график", ["График по профессиям", "Влияние опыта работы на зарплату", "3D Scatter Plot" , "Top 20 Regions by Number of Vacancies","Average Salary in Each Region in 2024",'Kazakhstan Map' ,"Education Level Requirements in Job Vacancies in 2024","Weighted Average Salary by Education Level in 2024","Average Salary Distribution by Work Schedule in 2024","Top 10 Companies with the Most Vacancies in 2024",'Relationship Between Job Category and Work Experience in 2024','The impact of work experience on average salary depending on education'])
+menu = st.sidebar.radio("Выберите график", ["The most popular professions by filtered regions", "The impact of work experience on salary", "3D Scatter Plot" , "Top 20 Regions by Number of Vacancies","Average Salary in Each Region in 2024",'Kazakhstan Map' ,"Education Level Requirements in Job Vacancies in 2024","Weighted Average Salary by Education Level in 2024","Average Salary Distribution by Work Schedule in 2024","Top 10 Companies with the Most Vacancies in 2024",'Relationship Between Job Category and Work Experience in 2024','The impact of work experience on average salary depending on education'])
 
 # Отображаем выбранный график
-if menu == "График по профессиям":
+if menu == "The most popular professions by filtered regions":
     selected_regions = st.multiselect(
         'Выберите регион',
         options=top_professions['Фильтрованные регионы'].unique(),
@@ -47,14 +47,14 @@ if menu == "График по профессиям":
         x='Название работы',
         y='Количество вакансий',
         color='Фильтрованные регионы',
-        title='Наиболее востребованные профессии по фильтрованным регионам',
-        labels={'Количество вакансий': 'Количество вакансий', 'Название работы': 'Профессии'},
+        title='The most popular professions by filtered regions',
+        labels={'Количество вакансий': 'Number of vacancies', 'Название работы': 'Professions'},
         height=800,
         width=2000
     )
     st.plotly_chart(fig_bar)
 
-elif menu == "Влияние опыта работы на зарплату":
+elif menu == "The impact of work experience on salary":
     fig_line = go.Figure()
     for education_level in salary_by_education_experience['Образование'].unique():
         subset = salary_by_education_experience[salary_by_education_experience['Образование'] == education_level]
@@ -67,10 +67,10 @@ elif menu == "Влияние опыта работы на зарплату":
             marker=dict(size=8)
         ))
     fig_line.update_layout(
-        title='Влияние опыта работы на среднюю зарплату в зависимости от образования',
-        xaxis_title='Опыт работы (лет)',
-        yaxis_title='Средняя зарплата',
-        legend_title='Образование',
+        title='The impact of work experience on average salary depending on education',
+        xaxis_title='Work experience (years)',
+        yaxis_title='Average salary',
+        legend_title='Education',
         height=800,
         width=1200
     )
@@ -101,6 +101,15 @@ elif menu == "3D Scatter Plot":
         size_max=5,
         color_discrete_sequence=colors  # Используем цветовую палитру для 3D графика
     )
+    fig_3d.update_layout(
+    scene=dict(
+        xaxis_title='Experience',  # Custom label for X-axis
+        yaxis_title='The level of education',   # Custom label for Y-axis
+        zaxis_title='Average Salary'  # Custom label for Z-axis
+    ),
+    title="3D Scatter Plot with Custom Colors",
+    coloraxis_colorbar=dict(title="Category")  # Custom color legend title
+)
 
     # Установка пределов для осей (уменьшение зума на 50%)
     if filtered_df['Опыт работы'].dtype in ['int64', 'float64']:
@@ -153,9 +162,9 @@ elif menu == "3D Scatter Plot":
 
     # Настройка графика
     fig_scatter.update_layout(
-        title='Средняя зарплата по образованию для выбранных категорий',
-        xaxis_title='Уровень образования',
-        yaxis_title='Средняя зарплата',
+        title='Average salary by education for selected categories',
+        xaxis_title='The level of education',
+        yaxis_title='Average salary',
         height=600,
         width=1200
     )
@@ -181,9 +190,9 @@ elif menu == "3D Scatter Plot":
 
     # Настройка scatter plot
     fig_scatter1.update_layout(
-        title='Средняя зарплата по опыту работы для выбранных категорий',
-        xaxis_title='Опыт работы',
-        yaxis_title='Средняя зарплата',
+        title='Average salary based on work experience for selected categories',
+        xaxis_title='Work experience',
+        yaxis_title='Average salary',
         height=600,
         width=1200
     )
@@ -248,7 +257,7 @@ elif menu == "Average Salary in Each Region in 2024":
         sorted_avg_salary,
         x='Регион',
         y='Средняя зарплата',
-        title='Средняя зарплата по регионам в 2024 году',
+        title='Average Salary in Each Region in 2024',
         labels={'Регион': 'Регион', 'Средняя зарплата': 'Средняя зарплата'},
         text='Средняя зарплата'
     )
@@ -260,8 +269,8 @@ elif menu == "Average Salary in Each Region in 2024":
     fig_salary.update_layout(
         height=800,
         title_font=dict(size=24, color='dimgray', family='Arial'),
-        xaxis_title='Регион',
-        yaxis_title='Средняя зарплата',
+        xaxis_title='Region',
+        yaxis_title='Average Salary',
         xaxis_tickangle=-45,
         yaxis=dict(showgrid=True, gridcolor='lightgrey'),
         template='plotly_white',
@@ -371,7 +380,7 @@ elif menu == 'Kazakhstan Map':
 
     # Save the map and display it
     m.save("kazakhstan_vacancies_map.html")
-    st.title("Карта вакансий в Казахстане")
+    st.title("Kazakhstan vacancies map")
     st_folium(m, width=725)
 elif menu == "Education Level Requirements in Job Vacancies in 2024":
 # Calculate education level percentages
@@ -454,22 +463,22 @@ elif menu == 'Average Salary Distribution by Work Schedule in 2024':
     fig = px.box(df, 
                 x='График работы', 
                 y='Средняя зарплата', 
-                title='Распределение средней зарплаты по графику работы в 2024',
-                labels={'График работы': 'График работы', 'Средняя зарплата': 'Средняя зарплата'},
+                title='Distribution of the average salary according to the work schedule in 2024',
+                labels={'График работы': 'Work schedule', 'Средняя зарплата': 'Average salary'},
                 template='plotly_white',
                 color='График работы',  # Группируем по графику работы
                 color_discrete_sequence=extended_professional_colors)
 
     # Обновляем внешний вид
     fig.update_layout(
-        xaxis_title='График работы',
-        yaxis_title='Средняя зарплата',
+        xaxis_title='Work schedule',
+        yaxis_title='Average salary',
         xaxis_tickangle=-45,  # Поворот подписей по оси X для лучшей читаемости
         height=800  # Увеличение высоты графика
     )
 
     # Заголовок приложения Streamlit
-    st.title("Анализ Зарплат по Графикам Работы")
+    st.title("Salary Analysis according to Work Schedules")
 
     # Показываем график
     st.plotly_chart(fig)
@@ -486,8 +495,8 @@ elif menu == 'Top 10 Companies with the Most Vacancies in 2024':
                 x=top_5_companies.values, 
                 y=top_5_companies.index, 
                 orientation='h',  # Горизонтальные столбцы
-                labels={'y': 'Название компании', 'x': 'Общее количество вакансий'}, 
-                title='Топ 10 компаний с наибольшим количеством вакансий в 2024',
+                labels={'y': 'Company Name', 'x': 'Total number of vacancies'}, 
+                title='Top 10 Companies with the Most Vacancies in 2024',
                 text=top_5_companies.values,  # Добавляем значения на график
                 color=top_5_companies.index,  # Цвета в зависимости от компании
                 color_discrete_sequence=px.colors.qualitative.Pastel)  # Пастельная цветовая схема
@@ -497,14 +506,14 @@ elif menu == 'Top 10 Companies with the Most Vacancies in 2024':
 
     # Обновляем макет графика
     fig.update_layout(
-        xaxis_title='Общее количество вакансий',
-        yaxis_title='Название компании',
+        xaxis_title='Total number of vacancies',
+        yaxis_title='Company Name',
         height=600,
         showlegend=False
     )
 
     # Заголовок приложения Streamlit
-    st.title("Анализ Топ-10 Компаний по Вакансиям")
+    st.title("Analysis of the Top 10 Companies by Vacancies")
 
     # Показываем график
     st.plotly_chart(fig)
@@ -529,15 +538,15 @@ elif menu=='Relationship Between Job Category and Work Experience in 2024':
 
     # Настройка заголовков и отображения
     fig.update_layout(
-        title='Связь между категорией работы и опытом работы в 2024',
-        xaxis_title='Опыт работы (в годах)',
-        yaxis_title='Категория',
+        title='Relationship Between Job Category and Work Experience in 2024',
+        xaxis_title='Work experience (in years)',
+        yaxis_title='Category',
         height=700,
         width=1000
     )
 
     # Заголовок приложения Streamlit
-    st.title("Анализ Вакансий по Категории и Опыт Работы")
+    st.title("Job Analysis by Category and Work Experience")
 
     # Показываем график
     st.plotly_chart(fig)    
@@ -545,10 +554,10 @@ elif menu=='The impact of work experience on average salary depending on educati
     sns.lineplot(x='Опыт работы', y='Средняя зарплата', hue='Образование', data=salary_by_education_experience, marker='o')
 
     # Настройка графика
-    plt.title('Влияние опыта работы на среднюю зарплату в зависимости от образования')
-    plt.xlabel('Опыт работы (лет)')
-    plt.ylabel('Средняя зарплата')
-    plt.legend(title='Образование')
+    plt.title('The impact of work experience on average salary depending on education')
+    plt.xlabel('Work experience (in years)')
+    plt.ylabel('Average Salary')
+    plt.legend(title='The level of education')
     plt.grid(True)
 
     # Отображение графика в Streamlit
