@@ -476,7 +476,6 @@ elif menu == 'Most Popular Professions by Filtered Region':
     st.title("Job Market Analysis by Region")
 
     # Отображение графика для профессий
-    st.subheader("Top 5 Most Popular Professions by Region with Salary Statistics")
     fig_profession = px.bar(
         top_5_professions_per_region,
         x='Количество_вакансий',
